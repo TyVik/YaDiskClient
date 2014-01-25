@@ -10,6 +10,16 @@ class YaDiskException(Exception):
     pass
 
 
+class YaDiskXML(object):
+    namespaces = {'d': "DAV:"}
+
+    def find(self, node, path):
+        return node.find(path, namespaces=self.namespaces)
+
+    def xpath(self, node, path):
+        return node.xpath(path, namespaces=self.namespaces)
+
+
 class YaDisk(object):
     login = None
     password = None
@@ -20,18 +30,24 @@ class YaDisk(object):
         self.login = login
         self.password = password
 
+    def sendRequest(self, type, url, headers, data=None):
+        req = requests.Request(type, url, headers=headers, auth=(self.login, self.password), data=data)
+        with requests.Session() as s:
+            return s.send(req.prepare())
+
     def ls(self, path, offset=None, amount=None):
         def parseContent(content):
             result = []
             tree = etree.XML(content)
-            for response in tree.xpath("d:response", namespaces={'d': "DAV:"}):
+            xml = YaDiskXML()
+            for response in xml.xpath(tree, "d:response"):
                 node = {
-                    'path': response.find("d:href", namespaces={'d': "DAV:"}).text,
-                    'creationdate': response.find("d:propstat/d:prop/d:creationdate", namespaces={'d': "DAV:"}).text,
-                    'displayname': response.find("d:propstat/d:prop/d:displayname", namespaces={'d': "DAV:"}).text,
-                    'length': response.find("d:propstat/d:prop/d:getcontentlength", namespaces={'d': "DAV:"}).text,
-                    'lastmodified': response.find("d:propstat/d:prop/d:getlastmodified", namespaces={'d': "DAV:"}).text,
-                    'isDir': response.find("d:propstat/d:prop/d:resourcetype/d:collection", namespaces={'d': "DAV:"}) != None
+                    'path': xml.find(response, "d:href").text,
+                    'creationdate': xml.find(response, "d:propstat/d:prop/d:creationdate").text,
+                    'displayname': xml.find(response, "d:propstat/d:prop/d:displayname").text,
+                    'length': xml.find(response, "d:propstat/d:prop/d:getcontentlength").text,
+                    'lastmodified': xml.find(response, "d:propstat/d:prop/d:getlastmodified").text,
+                    'isDir': xml.find(response, "d:propstat/d:prop/d:resourcetype/d:collection") != None
                 }
                 result.append(node)
             return result
@@ -41,14 +57,35 @@ class YaDisk(object):
         if (offset != None) and (amount != None):
             url += "?offset=%d&amount=%d" % (offset, amount)
         print url
-        req = requests.Request("PROPFIND", url, headers=headers, auth=(self.login, self.password))
-        with requests.Session() as s:
-            resp = s.send(req.prepare())
-            if resp.status_code == 207:
-                return parseContent(resp.content)
+        resp = self.sendRequest("PROPFIND", url, headers)
+        if resp.status_code == 207:
+            return parseContent(resp.content)
 
+    def df(self):
+        def parseContent(content):
+            tree = etree.XML(content)
+            xml = YaDiskXML()
+            node = xml.xpath(tree, "//d:prop")[0]
+            return {
+                'available': xml.find(node, "d:quota-available-bytes").text, 
+                'used': xml.find(node, "d:quota-used-bytes").text
+            }
+
+        headers = {'Accept': '*/*', 'Depth': 0}
+        data = """
+<D:propfind xmlns:D="DAV:">
+  <D:prop>
+    <D:quota-available-bytes/>
+    <D:quota-used-bytes/>
+  </D:prop>
+</D:propfind>
+        """
+        resp = self.sendRequest("PROPFIND", self.url, headers, data)
+        if resp.status_code == 207:
+            return parseContent(resp.content)
 
 
 if __name__ == "__main__":
     disk = YaDisk(LOGIN, PASSWORD)
     print disk.ls("/")
+    print disk.df()
