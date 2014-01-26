@@ -34,6 +34,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-
-# YaDisk
-YaDiskSettings.py

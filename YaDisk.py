@@ -1,13 +1,18 @@
 #!/usr/bin/python
 #coding: utf-8
 import requests
-import time
 from lxml import etree
-from YaDiskSettings import LOGIN, PASSWORD
 
 
 class YaDiskException(Exception):
-    pass
+    code = None
+
+    def __init__(self, code, text):
+        super(YaDiskException, self).__init__(text)
+        self.code = code
+
+    def __str__(self):
+        return "%d. %s" % (self.code, super(YaDiskException, self).__str__())
 
 
 class YaDiskXML(object):
@@ -30,7 +35,7 @@ class YaDisk(object):
         self.login = login
         self.password = password
 
-    def sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
+    def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
         headers = {"Accept": "*/*"}
         headers.update(addHeaders)
         url = self.url + addUrl
@@ -58,11 +63,11 @@ class YaDisk(object):
         url = path
         if (offset != None) and (amount != None):
             url += "?offset=%d&amount=%d" % (offset, amount)
-        resp = self.sendRequest("PROPFIND", path, {'Depth': 1})
+        resp = self._sendRequest("PROPFIND", path, {'Depth': 1})
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
-            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+            raise YaDiskException(resp.status_code, resp.content)
 
     def df(self):
         def parseContent(content):
@@ -82,54 +87,51 @@ class YaDisk(object):
   </D:prop>
 </D:propfind>
         """
-        resp = self.sendRequest("PROPFIND", "/", {'Depth': 0}, data)
+        resp = self._sendRequest("PROPFIND", "/", {'Depth': 0}, data)
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
-            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+            raise YaDiskException(resp.status_code, resp.content)
 
     def mkdir(self, path):
-        resp = self.sendRequest("MKCOL", path)
+        resp = self._sendRequest("MKCOL", path)
         if resp.status_code != 201:
             if resp.status_code == 409:
-                raise YaDiskException("Part of path %s does not exists" % path)
+                raise YaDiskException(409, "Part of path %s does not exists" % path)
             elif resp.status_code == 405:
-                raise YaDiskException("Path %s already exists" % path)
+                raise YaDiskException(405, "Path %s already exists" % path)
             else:
-                raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+                raise YaDiskException(resp.status_code, resp.content)
 
     def rm(self, path):
-        resp = self.sendRequest("DELETE", path)
+        resp = self._sendRequest("DELETE", path)
         if resp.status_code != 200:
-            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+            raise YaDiskException(resp.status_code, resp.content)
 
     def cp(self, src, dst):
         if dst[0] != '/':
             raise YaDiskException("Destination path must be absolute")
-        resp = self.sendRequest("COPY", src, {'Destination': dst})
+        resp = self._sendRequest("COPY", src, {'Destination': dst})
         if resp.status_code != 201:
-            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+            raise YaDiskException(resp.status_code, resp.content)
 
     def mv(self, src, dst):
         if dst[0] != '/':
             raise YaDiskException("Destination path must be absolute")
-        resp = self.sendRequest("MOVE", src, {'Destination': dst})
+        resp = self._sendRequest("MOVE", src, {'Destination': dst})
         if resp.status_code != 201:
-            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+            raise YaDiskException(resp.status_code, resp.content)
 
     def upload(self, file, path):
         with open(file, "r") as f:
-            resp = self.sendRequest("PUT", path, data=f.read())
+            resp = self._sendRequest("PUT", path, data=f.read())
             if resp.status_code != 201:
-                raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+                raise YaDiskException(resp.status_code, resp.content)
 
     def download(self, path, file):
-        resp = self.sendRequest("GET", path)
+        resp = self._sendRequest("GET", path)
         if resp.status_code == 200:
             with open(file, "wb") as f:
                 f.write(resp.content)
         else:
-            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
-
-if __name__ == "__main__":
-    disk = YaDisk(LOGIN, PASSWORD)
+            raise YaDiskException(resp.status_code, resp.content)
