@@ -124,7 +124,13 @@ class YaDisk(object):
         pass
 
     def download(self, path, file):
-        pass
+        headers = {'Accept': '*/*'}
+        resp = self.sendRequest("GET", self.url + path, headers)
+        if resp.status_code == 200:
+            with open(file, "wb") as f:
+                f.write(resp.content)
+        else:
+            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
 if __name__ == "__main__":
     disk = YaDisk(LOGIN, PASSWORD)
