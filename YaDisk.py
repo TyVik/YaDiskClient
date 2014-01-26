@@ -104,7 +104,27 @@ class YaDisk(object):
         if resp.status_code != 200:
             raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
-    
+    def cp(self, src, dst):
+        if dst[0] != '/':
+            raise YaDiskException("Destination path must be absolute")
+        headers = {'Accept': '*/*', 'Destination': dst}
+        resp = self.sendRequest("COPY", self.url + src, headers)
+        if resp.status_code != 201:
+            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+
+    def mv(self, src, dst):
+        if dst[0] != '/':
+            raise YaDiskException("Destination path must be absolute")
+        headers = {'Accept': '*/*', 'Destination': dst}
+        resp = self.sendRequest("MOVE", self.url + src, headers)
+        if resp.status_code != 201:
+            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
+
+    def upload(self, file, path):
+        pass
+
+    def download(self, path, file):
+        pass
 
 if __name__ == "__main__":
     disk = YaDisk(LOGIN, PASSWORD)
