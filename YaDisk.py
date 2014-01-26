@@ -5,6 +5,7 @@ from lxml import etree
 
 
 class YaDiskException(Exception):
+    """Common exception class for YaDisk. Arg 'code' have code of HTTP Error."""
     code = None
 
     def __init__(self, code, text):
@@ -19,13 +20,19 @@ class YaDiskXML(object):
     namespaces = {'d': "DAV:"}
 
     def find(self, node, path):
+        """Wrapper for lxml`s find."""
+
         return node.find(path, namespaces=self.namespaces)
 
     def xpath(self, node, path):
+        """Wrapper for lxml`s xpath."""
+
         return node.xpath(path, namespaces=self.namespaces)
 
 
 class YaDisk(object):
+    """Main object for work with Yandex.disk."""
+
     login = None
     password = None
     url = "https://webdav.yandex.ru/"
@@ -44,6 +51,11 @@ class YaDisk(object):
             return s.send(req.prepare())
 
     def ls(self, path, offset=None, amount=None):
+        """
+        Return list of files/directories. Each item is a dict. 
+        Keys: 'path', 'creationdate', 'displayname', 'length', 'lastmodified', 'isDir'.
+        """
+        
         def parseContent(content):
             result = []
             tree = etree.XML(content)
@@ -70,6 +82,8 @@ class YaDisk(object):
             raise YaDiskException(resp.status_code, resp.content)
 
     def df(self):
+        """Return dict with size of Ya.Disk. Keys: 'available', 'used'."""
+
         def parseContent(content):
             tree = etree.XML(content)
             xml = YaDiskXML()
@@ -94,6 +108,8 @@ class YaDisk(object):
             raise YaDiskException(resp.status_code, resp.content)
 
     def mkdir(self, path):
+        """Create directory. All part of path must be exists. Raise exception when path already exists."""
+
         resp = self._sendRequest("MKCOL", path)
         if resp.status_code != 201:
             if resp.status_code == 409:
@@ -104,11 +120,15 @@ class YaDisk(object):
                 raise YaDiskException(resp.status_code, resp.content)
 
     def rm(self, path):
+        """Delete file or directory."""
+
         resp = self._sendRequest("DELETE", path)
         if resp.status_code != 200:
             raise YaDiskException(resp.status_code, resp.content)
 
     def cp(self, src, dst):
+        """Copy file or directory."""
+
         if dst[0] != '/':
             raise YaDiskException("Destination path must be absolute")
         resp = self._sendRequest("COPY", src, {'Destination': dst})
@@ -116,6 +136,8 @@ class YaDisk(object):
             raise YaDiskException(resp.status_code, resp.content)
 
     def mv(self, src, dst):
+        """Move file or directory."""
+
         if dst[0] != '/':
             raise YaDiskException("Destination path must be absolute")
         resp = self._sendRequest("MOVE", src, {'Destination': dst})
@@ -123,12 +145,16 @@ class YaDisk(object):
             raise YaDiskException(resp.status_code, resp.content)
 
     def upload(self, file, path):
+        """Upload file."""
+
         with open(file, "r") as f:
             resp = self._sendRequest("PUT", path, data=f.read())
             if resp.status_code != 201:
                 raise YaDiskException(resp.status_code, resp.content)
 
     def download(self, path, file):
+        """Download remote file to disk."""
+
         resp = self._sendRequest("GET", path)
         if resp.status_code == 200:
             with open(file, "wb") as f:
