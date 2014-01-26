@@ -30,7 +30,10 @@ class YaDisk(object):
         self.login = login
         self.password = password
 
-    def sendRequest(self, type, url, headers, data=None):
+    def sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
+        headers = {"Accept": "*/*"}
+        headers.update(addHeaders)
+        url = self.url + addUrl
         req = requests.Request(type, url, headers=headers, auth=(self.login, self.password), data=data)
         with requests.Session() as s:
             return s.send(req.prepare())
@@ -52,11 +55,10 @@ class YaDisk(object):
                 result.append(node)
             return result
 
-        headers = {'Accept': '*/*', 'Depth': 1}
-        url = self.url + path
+        url = path
         if (offset != None) and (amount != None):
             url += "?offset=%d&amount=%d" % (offset, amount)
-        resp = self.sendRequest("PROPFIND", url, headers)
+        resp = self.sendRequest("PROPFIND", path, {'Depth': 1})
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
@@ -72,7 +74,6 @@ class YaDisk(object):
                 'used': xml.find(node, "d:quota-used-bytes").text
             }
 
-        headers = {'Accept': '*/*', 'Depth': 0}
         data = """
 <D:propfind xmlns:D="DAV:">
   <D:prop>
@@ -81,15 +82,14 @@ class YaDisk(object):
   </D:prop>
 </D:propfind>
         """
-        resp = self.sendRequest("PROPFIND", self.url, headers, data)
+        resp = self.sendRequest("PROPFIND", "/", {'Depth': 0}, data)
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
             raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def mkdir(self, path):
-        headers = {'Accept': '*/*'}
-        resp = self.sendRequest("MKCOL", self.url + path, headers)
+        resp = self.sendRequest("MKCOL", path)
         if resp.status_code != 201:
             if resp.status_code == 409:
                 raise YaDiskException("Part of path %s does not exists" % path)
@@ -99,24 +99,21 @@ class YaDisk(object):
                 raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def rm(self, path):
-        headers = {'Accept': '*/*'}
-        resp = self.sendRequest("DELETE", self.url + path, headers)
+        resp = self.sendRequest("DELETE", path)
         if resp.status_code != 200:
             raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def cp(self, src, dst):
         if dst[0] != '/':
             raise YaDiskException("Destination path must be absolute")
-        headers = {'Accept': '*/*', 'Destination': dst}
-        resp = self.sendRequest("COPY", self.url + src, headers)
+        resp = self.sendRequest("COPY", src, {'Destination': dst})
         if resp.status_code != 201:
             raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def mv(self, src, dst):
         if dst[0] != '/':
             raise YaDiskException("Destination path must be absolute")
-        headers = {'Accept': '*/*', 'Destination': dst}
-        resp = self.sendRequest("MOVE", self.url + src, headers)
+        resp = self.sendRequest("MOVE", src, {'Destination': dst})
         if resp.status_code != 201:
             raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
@@ -124,8 +121,7 @@ class YaDisk(object):
         pass
 
     def download(self, path, file):
-        headers = {'Accept': '*/*'}
-        resp = self.sendRequest("GET", self.url + path, headers)
+        resp = self.sendRequest("GET", path)
         if resp.status_code == 200:
             with open(file, "wb") as f:
                 f.write(resp.content)
@@ -134,7 +130,3 @@ class YaDisk(object):
 
 if __name__ == "__main__":
     disk = YaDisk(LOGIN, PASSWORD)
-    print disk.ls("/")
-    print disk.df()
-    disk.mkdir("/temp/")
-    disk.rm("/temp/")
