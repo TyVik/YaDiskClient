@@ -23,7 +23,7 @@ class YaDiskXML(object):
 class YaDisk(object):
     login = None
     password = None
-    url = "https://webdav.yandex.ru"
+    url = "https://webdav.yandex.ru/"
     
     def __init__(self, login, password):
         super(YaDisk, self).__init__()
@@ -60,7 +60,7 @@ class YaDisk(object):
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
-            raise YaDiskException("Status code is %d" % resp.status_code)
+            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def df(self):
         def parseContent(content):
@@ -85,7 +85,7 @@ class YaDisk(object):
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
-            raise YaDiskException("Status code is %d" % resp.status_code)
+            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def mkdir(self, path):
         headers = {'Accept': '*/*'}
@@ -96,13 +96,13 @@ class YaDisk(object):
             elif resp.status_code == 405:
                 raise YaDiskException("Path %s already exists" % path)
             else:
-                raise YaDiskException("Status code is %d" % resp.status_code)
+                raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def rm(self, path):
         headers = {'Accept': '*/*'}
         resp = self.sendRequest("DELETE", self.url + path, headers)
         if resp.status_code != 200:
-            raise YaDiskException("Status code is %d" % resp.status_code)            
+            raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     
 
