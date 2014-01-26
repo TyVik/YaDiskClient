@@ -12,7 +12,7 @@ setup(
     author='TyVik',
     author_email='tyvik8@gmail.com',
     description='Clent for Yandex.Disk',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     install_requires=['requests', 'lxml'],
     packages=find_packages(),
 #    test_suite='YaDiskClient.TestYaDisk' # this line is commented because tests needs Yandex login and password
