@@ -15,5 +15,5 @@ setup(
     long_description=open('README.md').read(),
     install_requires=['requests', 'lxml'],
     packages=find_packages(),
-    test_suite='TestYaDisk'
+#    test_suite='YaDiskClient.TestYaDisk' # this line is commented because tests needs Yandex login and password
 )
