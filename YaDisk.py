@@ -56,10 +56,11 @@ class YaDisk(object):
         url = self.url + path
         if (offset != None) and (amount != None):
             url += "?offset=%d&amount=%d" % (offset, amount)
-        print url
         resp = self.sendRequest("PROPFIND", url, headers)
         if resp.status_code == 207:
             return parseContent(resp.content)
+        else:
+            raise YaDiskException("Status code is %d" % resp.status_code)
 
     def df(self):
         def parseContent(content):
@@ -83,6 +84,8 @@ class YaDisk(object):
         resp = self.sendRequest("PROPFIND", self.url, headers, data)
         if resp.status_code == 207:
             return parseContent(resp.content)
+        else:
+            raise YaDiskException("Status code is %d" % resp.status_code)
 
 
 if __name__ == "__main__":
