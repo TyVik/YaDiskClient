@@ -5,6 +5,10 @@ Client for Yandex.Disk based on WebDav.
 
 # Install
 
+> [pip](https://pypi.python.org/pypi/pip/) install [YaDiskClient](https://pypi.python.org/pypi/YaDiskClient)
+or
+> [easy_install](https://pypi.python.org/pypi/setuptools) [YaDiskClient](https://pypi.python.org/pypi/YaDiskClient)
+or
 > python setup.py install
 
 Source code
