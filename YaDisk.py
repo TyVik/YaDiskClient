@@ -87,8 +87,19 @@ class YaDisk(object):
         else:
             raise YaDiskException("Status code is %d" % resp.status_code)
 
+    def mkdir(self, path):
+        headers = {'Accept': '*/*'}
+        resp = self.sendRequest("MKCOL", self.url + path, headers)
+        if resp.status_code != 201:
+            if resp.status_code == 409:
+                raise YaDiskException("Part of path %s does not exists" % path)
+            else:
+                raise YaDiskException("Status code is %d" % resp.status_code)
+
+
 
 if __name__ == "__main__":
     disk = YaDisk(LOGIN, PASSWORD)
     print disk.ls("/")
     print disk.df()
+    disk.mkdir("/temp/")
