@@ -118,7 +118,10 @@ class YaDisk(object):
             raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def upload(self, file, path):
-        pass
+        with open(file, "r") as f:
+            resp = self.sendRequest("PUT", path, data=f.read())
+            if resp.status_code != 201:
+                raise YaDiskException("Status code is %d: %s" % (resp.status_code, resp.content))
 
     def download(self, path, file):
         resp = self.sendRequest("GET", path)
