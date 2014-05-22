@@ -128,7 +128,9 @@ class YaDisk(object):
         """Delete file or directory."""
 
         resp = self._sendRequest("DELETE", path)
-        if resp.status_code != 200:
+        # By documentation server must return 200 "OK", but I get 204 "No Content".
+        # Anyway file or directory have been removed.
+        if not (resp.status_code in [200, 204]):
             raise YaDiskException(resp.status_code, resp.content)
 
     def cp(self, src, dst):
