@@ -11,7 +11,7 @@ PASSWORD = None
 
 class TestYaDisk(unittest.TestCase):
     testFolder = '/TestYaDisk'
-    testFile = 'YaDisk.py'
+    testFile = 'TestYaDisk.py'
     disk = None
 
     @classmethod
