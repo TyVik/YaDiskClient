@@ -41,6 +41,8 @@ class YaDisk(object):
         super(YaDisk, self).__init__()
         self.login = login
         self.password = password
+        if self.login is None or self.password is None:
+            raise Exception("Please, set login and password to Yandex.Disk.")
 
     def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
         headers = {"Accept": "*/*"}
