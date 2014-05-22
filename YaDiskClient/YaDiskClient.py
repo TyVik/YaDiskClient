@@ -67,10 +67,13 @@ class YaDisk(object):
                     'path': xml.find(response, "d:href").text,
                     'creationdate': xml.find(response, "d:propstat/d:prop/d:creationdate").text,
                     'displayname': xml.find(response, "d:propstat/d:prop/d:displayname").text,
-                    'length': xml.find(response, "d:propstat/d:prop/d:getcontentlength").text,
                     'lastmodified': xml.find(response, "d:propstat/d:prop/d:getlastmodified").text,
                     'isDir': xml.find(response, "d:propstat/d:prop/d:resourcetype/d:collection") != None
                 }
+                if not node['isDir']:
+                    node['length'] = xml.find(response, "d:propstat/d:prop/d:getcontentlength").text
+                    node['etag'] = xml.find(response, "d:propstat/d:prop/d:getetag").text
+                    node['type'] = xml.find(response, "d:propstat/d:prop/d:getcontenttype").text
                 result.append(node)
             return result
 
