@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #coding: utf-8
 import requests
-from lxml import etree
+import xml.etree.ElementTree as ET
 
 
 class YaDiskException(Exception):
@@ -36,6 +36,7 @@ class YaDisk(object):
     login = None
     password = None
     url = "https://webdav.yandex.ru/"
+    namespaces = {'d': 'DAV:'}
     
     def __init__(self, login, password):
         super(YaDisk, self).__init__()
@@ -60,20 +61,19 @@ class YaDisk(object):
         
         def parseContent(content):
             result = []
-            tree = etree.XML(content)
-            xml = YaDiskXML()
-            for response in xml.xpath(tree, "d:response"):
+            root = ET.fromstring(content)
+            for response in root.findall('.//d:response', namespaces=self.namespaces):
                 node = {
-                    'path': xml.find(response, "d:href").text,
-                    'creationdate': xml.find(response, "d:propstat/d:prop/d:creationdate").text,
-                    'displayname': xml.find(response, "d:propstat/d:prop/d:displayname").text,
-                    'lastmodified': xml.find(response, "d:propstat/d:prop/d:getlastmodified").text,
-                    'isDir': xml.find(response, "d:propstat/d:prop/d:resourcetype/d:collection") != None
+                    'path': response.find("d:href", namespaces=self.namespaces).text,
+                    'creationdate': response.find("d:propstat/d:prop/d:creationdate", namespaces=self.namespaces).text,
+                    'displayname': response.find("d:propstat/d:prop/d:displayname", namespaces=self.namespaces).text,
+                    'lastmodified': response.find("d:propstat/d:prop/d:getlastmodified", namespaces=self.namespaces).text,
+                    'isDir': response.find("d:propstat/d:prop/d:resourcetype/d:collection", namespaces=self.namespaces) != None
                 }
                 if not node['isDir']:
-                    node['length'] = xml.find(response, "d:propstat/d:prop/d:getcontentlength").text
-                    node['etag'] = xml.find(response, "d:propstat/d:prop/d:getetag").text
-                    node['type'] = xml.find(response, "d:propstat/d:prop/d:getcontenttype").text
+                    node['length'] = response.find("d:propstat/d:prop/d:getcontentlength", namespaces=self.namespaces).text
+                    node['etag'] = response.find("d:propstat/d:prop/d:getetag", namespaces=self.namespaces).text
+                    node['type'] = response.find("d:propstat/d:prop/d:getcontenttype", namespaces=self.namespaces).text
                 result.append(node)
             return result
 
@@ -90,12 +90,10 @@ class YaDisk(object):
         """Return dict with size of Ya.Disk. Keys: 'available', 'used'."""
 
         def parseContent(content):
-            tree = etree.XML(content)
-            xml = YaDiskXML()
-            node = xml.xpath(tree, "//d:prop")[0]
+            root = ET.fromstring(content)
             return {
-                'available': xml.find(node, "d:quota-available-bytes").text, 
-                'used': xml.find(node, "d:quota-used-bytes").text
+                'available': root.find(".//d:quota-available-bytes", namespaces=self.namespaces).text, 
+                'used': root.find(".//d:quota-used-bytes", namespaces=self.namespaces).text
             }
 
         data = """
