@@ -2,7 +2,7 @@
 #coding: utf-8
 import os
 import unittest
-from YaDiskClient import YaDisk, YaDiskException
+from .YaDiskClient import YaDisk, YaDiskException
 
 
 LOGIN = None
