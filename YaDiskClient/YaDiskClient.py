@@ -152,7 +152,7 @@ class YaDisk(object):
     def upload(self, file, path):
         """Upload file."""
 
-        with open(file, "r") as f:
+        with open(file, "rb") as f:
             resp = self._sendRequest("PUT", path, data=f.read())
             if resp.status_code != 201:
                 raise YaDiskException(resp.status_code, resp.content)
