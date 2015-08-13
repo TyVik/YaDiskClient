@@ -153,7 +153,7 @@ class YaDisk(object):
         """Upload file."""
 
         with open(file, "rb") as f:
-            resp = self._sendRequest("PUT", path, data=f.read())
+            resp = self._sendRequest("PUT", path, data=f)
             if resp.status_code != 201:
                 raise YaDiskException(resp.status_code, resp.content)
 
