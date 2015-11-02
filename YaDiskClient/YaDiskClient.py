@@ -80,7 +80,7 @@ class YaDisk(object):
         url = path
         if (offset != None) and (amount != None):
             url += "?offset=%d&amount=%d" % (offset, amount)
-        resp = self._sendRequest("PROPFIND", path, {'Depth': 1})
+        resp = self._sendRequest("PROPFIND", url, {'Depth': 1})
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
