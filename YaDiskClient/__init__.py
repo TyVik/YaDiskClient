@@ -1,6 +1,4 @@
 """
 Client for Yandex.Disk.
 """
-__version__ = '0.3.3'
-
-from .YaDiskClient import YaDiskException, YaDisk
+__version__ = '0.4.3'
