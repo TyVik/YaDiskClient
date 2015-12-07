@@ -27,7 +27,7 @@ Using API
 
 ::
 
-    from YaDiskClient import YaDisk
+    from YaDiskClient.YaDiskClient import YaDisk
     disk = YaDisk(login, password)
 
     disk.df() # show used and available space
