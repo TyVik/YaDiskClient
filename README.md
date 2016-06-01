@@ -17,7 +17,7 @@ Source code
 
 # Using API
 ```python
-from YaDiskClient import YaDisk
+from YaDiskClient.YaDiskClient import YaDisk
 disk = YaDisk(login, password)
 
 disk.df() # show used and available space
@@ -28,6 +28,8 @@ disk.cp(src, dst) # copy from src to dst
 disk.mv(src, dst) # move from src to dst
 disk.upload(src, dst) # upload local file src to remote file dst
 disk.download(src, dst) # download remote file src to local file dst
+disk.publish_doc(path) # return public url
+disk.hide_doc(path) # remove public url form Yandex Disk
 ```
 
 # Tests
