@@ -37,7 +37,7 @@ class YaDisk(object):
     password = None
     url = "https://webdav.yandex.ru/"
     namespaces = {'d': 'DAV:'}
-
+    
     def __init__(self, login, password):
         super(YaDisk, self).__init__()
         self.login = login
@@ -55,10 +55,10 @@ class YaDisk(object):
 
     def ls(self, path, offset=None, amount=None):
         """
-        Return list of files/directories. Each item is a dict.
+        Return list of files/directories. Each item is a dict. 
         Keys: 'path', 'creationdate', 'displayname', 'length', 'lastmodified', 'isDir'.
         """
-
+        
         def parseContent(content):
             result = []
             root = ET.fromstring(content)
@@ -80,7 +80,7 @@ class YaDisk(object):
         url = path
         if (offset != None) and (amount != None):
             url += "?offset=%d&amount=%d" % (offset, amount)
-        resp = self._sendRequest("PROPFIND", url, {'Depth': '1'})
+        resp = self._sendRequest("PROPFIND", url, {'Depth': ‘1’})
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
@@ -92,7 +92,7 @@ class YaDisk(object):
         def parseContent(content):
             root = ET.fromstring(content)
             return {
-                'available': root.find(".//d:quota-available-bytes", namespaces=self.namespaces).text,
+                'available': root.find(".//d:quota-available-bytes", namespaces=self.namespaces).text, 
                 'used': root.find(".//d:quota-used-bytes", namespaces=self.namespaces).text
             }
 
@@ -104,7 +104,7 @@ class YaDisk(object):
   </D:prop>
 </D:propfind>
         """
-        resp = self._sendRequest("PROPFIND", "/", {'Depth': '0'}, data)
+        resp = self._sendRequest("PROPFIND", "/", {'Depth': ‘0’}, data)
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
@@ -166,15 +166,15 @@ class YaDisk(object):
                 f.write(resp.content)
         else:
             raise YaDiskException(resp.status_code, resp.content)
-
+            
     def publish_doc(self, path):
         """Publish file or folder and return public url"""
-
+        
         def parseContent(content):
             root = ET.fromstring(content)
             prop = root.find(".//d:prop", namespaces=self.namespaces)
             return prop.find("{urn:yandex:disk:meta}public_url").text.strip()
-
+        
         data = """
 <propertyupdate xmlns="DAV:">
   <set>
@@ -184,19 +184,19 @@ class YaDisk(object):
   </set>
 </propertyupdate>
         """
-
+        
         if path[0] != '/':
             raise YaDiskException("Destination path must be absolute")
-
+            
         resp = self._sendRequest("PROPPATCH", addUrl=path, data=data)
         if resp.status_code == 207:
             return parseContent(resp.content)
         else:
             raise YaDiskException(resp.status_code, resp.content)
-
+    
     def hide_doc(self, path):
         """Make public file or folder private (delete public url)"""
-
+        
         data = """
 <propertyupdate xmlns="DAV:">
   <remove>
@@ -206,12 +206,13 @@ class YaDisk(object):
   </remove>
 </propertyupdate>
         """
-
+        
         if path[0] != '/':
             raise YaDiskException("Destination path must be absolute")
-
+            
         resp = self._sendRequest("PROPPATCH", addUrl=path, data=data)
         if resp.status_code == 207:
             pass
         else:
             raise YaDiskException(resp.status_code, resp.content)
+        
