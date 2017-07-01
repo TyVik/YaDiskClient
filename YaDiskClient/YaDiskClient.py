@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #coding: utf-8
-import requests
+from requests import request
 import xml.etree.ElementTree as ET
 
 
@@ -49,9 +49,7 @@ class YaDisk(object):
         headers = {"Accept": "*/*"}
         headers.update(addHeaders)
         url = self.url + addUrl
-        req = requests.Request(type, url, headers=headers, auth=(self.login, self.password), data=data)
-        with requests.Session() as s:
-            return s.send(req.prepare())
+        return request(type, url, headers=headers, auth=(self.login, self.password), data=data)
 
     def ls(self, path, offset=None, amount=None):
         """
