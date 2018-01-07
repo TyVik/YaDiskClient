@@ -15,5 +15,23 @@ setup(
     long_description=open('README.rst').read(),
     install_requires=['requests'],
     packages=find_packages(),
+    keywords='Yandex.Disk, webdav, client, python, Yandex'
 #    test_suite='YaDiskClient.TestYaDisk' # this line is commented because tests needs Yandex login and password
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python',
+        'Topic :: Internet',
+        'Topic :: Utilities',
+        'Topic :: System :: Archiving :: Backup',
+    ],
 )
