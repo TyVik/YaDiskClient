@@ -30,6 +30,11 @@ class YaDiskXML(object):
         return node.xpath(path, namespaces=self.namespaces)
 
 
+def _check_dst_absolute(dst):
+    if dst[0] != '/':
+        raise YaDiskException(400, "Destination path must be absolute")
+
+
 class YaDisk(object):
     """Main object for work with Yandex.disk."""
 
@@ -43,7 +48,7 @@ class YaDisk(object):
         self.login = login
         self.password = password
         if self.login is None or self.password is None:
-            raise Exception("Please, set login and password to Yandex.Disk.")
+            raise YaDiskException(400, "Please, specify login and password for Yandex.Disk account.")
 
     def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
         headers = {"Accept": "*/*"}
@@ -126,14 +131,13 @@ class YaDisk(object):
         resp = self._sendRequest("DELETE", path)
         # By documentation server must return 200 "OK", but I get 204 "No Content".
         # Anyway file or directory have been removed.
-        if not (resp.status_code in [200, 204]):
+        if not (resp.status_code in (200, 204)):
             raise YaDiskException(resp.status_code, resp.content)
 
     def cp(self, src, dst):
         """Copy file or directory."""
 
-        if dst[0] != '/':
-            raise YaDiskException("Destination path must be absolute")
+        _check_dst_absolute(dst)
         resp = self._sendRequest("COPY", src, {'Destination': dst})
         if resp.status_code != 201:
             raise YaDiskException(resp.status_code, resp.content)
@@ -141,8 +145,7 @@ class YaDisk(object):
     def mv(self, src, dst):
         """Move file or directory."""
 
-        if dst[0] != '/':
-            raise YaDiskException("Destination path must be absolute")
+        _check_dst_absolute(dst)
         resp = self._sendRequest("MOVE", src, {'Destination': dst})
         if resp.status_code != 201:
             raise YaDiskException(resp.status_code, resp.content)
@@ -183,9 +186,7 @@ class YaDisk(object):
 </propertyupdate>
         """
         
-        if path[0] != '/':
-            raise YaDiskException("Destination path must be absolute")
-            
+        _check_dst_absolute(path)
         resp = self._sendRequest("PROPPATCH", addUrl=path, data=data)
         if resp.status_code == 207:
             return parseContent(resp.content)
@@ -205,9 +206,7 @@ class YaDisk(object):
 </propertyupdate>
         """
         
-        if path[0] != '/':
-            raise YaDiskException("Destination path must be absolute")
-            
+        _check_dst_absolute(path)
         resp = self._sendRequest("PROPPATCH", addUrl=path, data=data)
         if resp.status_code == 207:
             pass

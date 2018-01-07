@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-#coding: utf-8
+# coding: utf-8
+
 import os
 import random
 import string
 import unittest
 
-from YaDiskClient import YaDisk, YaDiskException
+from YaDiskClient.YaDiskClient import YaDisk, YaDiskException
 
 
 LOGIN = os.environ.get('YANDEX_LOGIN')
@@ -25,7 +26,6 @@ class TestYaDisk(unittest.TestCase):
         cls.disk = YaDisk(LOGIN, PASSWORD)
 
         # take any file in work directory
-        content = os.listdir('.')
         for item in os.listdir('.'):
             if os.path.isfile(item):
                 cls.remote_file = item
@@ -77,6 +77,7 @@ class TestYaDisk(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.remove(cls.tmp_local_file)
+
 
 if __name__ == '__main__':
     unittest.main()
