@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-#coding: utf-8
+# coding: utf-8
+from warnings import warn
+
 from requests import request
 import xml.etree.ElementTree as ET
 
@@ -81,7 +83,7 @@ class YaDisk(object):
             return result
 
         url = path
-        if (offset != None) and (amount != None):
+        if (offset is not None) and (amount is not None):
             url += "?offset={offset}&amount={amount}".format(offset=offset, amount=amount)
         resp = self._sendRequest("PROPFIND", url, {'Depth': '1'})
         if resp.status_code == 207:
@@ -168,7 +170,7 @@ class YaDisk(object):
         else:
             raise YaDiskException(resp.status_code, resp.content)
             
-    def publish_doc(self, path):
+    def publish(self, path):
         """Publish file or folder and return public url"""
         
         def parseContent(content):
@@ -193,7 +195,7 @@ class YaDisk(object):
         else:
             raise YaDiskException(resp.status_code, resp.content)
     
-    def hide_doc(self, path):
+    def unpublish(self, path):
         """Make public file or folder private (delete public url)"""
         
         data = """
@@ -212,3 +214,11 @@ class YaDisk(object):
             pass
         else:
             raise YaDiskException(resp.status_code, resp.content)
+
+    def publish_doc(self, path):
+        warn('This method was deprecated in favor method "publish"', DeprecationWarning, stacklevel=2)
+        return self.publish(path)
+
+    def hide_doc(self, path):
+        warn('This method was deprecated in favor method "unpublish"', DeprecationWarning, stacklevel=2)
+        return self.unpublish(path)
