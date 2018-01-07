@@ -1,12 +1,18 @@
 YaDiskClient
 ============
 
-.. image:: https://travis-ci.org/TyVik/YaDiskClient.svg?branch=master :target: https://travis-ci.org/TyVik/YaDiskClient?branch=master
-.. image:: https://coveralls.io/repos/github/TyVik/YaDiskClient/badge.svg?branch=master :target: https://coveralls.io/github/TyVik/YaDiskClient?branch=master
-.. image:: https://img.shileds.io/pypi/pyversions/YaDiskClient.svg :target: https://pypi.python.org/pypi/YaDiskClient/
-.. image:: https://img.shileds.io/pypi/v/YaDiskClient.svg :target: https://pypi.python.org/pypi/YaDiskClient/
-.. image:: https://img.shileds.io/pypi/status/YaDiskClient.svg :target: https://pypi.python.org/pypi/YaDiskClient/
-.. image:: https://img.shileds.io/pypi/l/YaDiskClient.svg :target: https://pypi.python.org/pypi/YaDiskClient/
+.. image:: https://travis-ci.org/TyVik/YaDiskClient.svg?branch=master
+    :target: https://travis-ci.org/TyVik/YaDiskClient?branch=master
+.. image:: https://coveralls.io/repos/github/TyVik/YaDiskClient/badge.svg?branch=master
+    :target: https://coveralls.io/github/TyVik/YaDiskClient?branch=master
+.. image:: https://img.shields.io/pypi/pyversions/YaDiskClient.svg
+    :target: https://pypi.python.org/pypi/YaDiskClient/
+.. image:: https://img.shields.io/pypi/v/YaDiskClient.svg
+    :target: https://pypi.python.org/pypi/YaDiskClient/
+.. image:: https://img.shields.io/pypi/status/YaDiskClient.svg
+    :target: https://pypi.python.org/pypi/YaDiskClient/
+.. image:: https://img.shields.io/pypi/l/YaDiskClient.svg
+    :target: https://pypi.python.org/pypi/YaDiskClient/
 
 Client for Yandex.Disk based on WebDav.
 
