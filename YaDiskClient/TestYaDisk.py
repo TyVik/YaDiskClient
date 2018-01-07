@@ -14,7 +14,7 @@ PASSWORD = os.environ.get('YANDEX_PASSWORD')
 
 class TestYaDisk(unittest.TestCase):
     remote_folder = '/TestYaDisk_{}'.format(''.join(random.choice(string.ascii_uppercase) for _ in range(6)))
-    remote_file = 'TestYaDisk.py'
+    remote_file = None
     remote_path = None
     tmp_remote_path = None
     tmp_local_file = None
@@ -23,6 +23,14 @@ class TestYaDisk(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.disk = YaDisk(LOGIN, PASSWORD)
+
+        # take any file in work directory
+        content = os.listdir('.')
+        for item in os.listdir('.'):
+            if os.path.isfile(item):
+                cls.remote_file = item
+                break
+
         cls.remote_path = "{folder}/{file}".format(folder=cls.remote_folder, file=cls.remote_file)
         cls.tmp_remote_path = "{path}~".format(path=cls.remote_path)
         cls.tmp_local_file = "{file}~".format(file=cls.remote_file)
