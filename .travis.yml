@@ -1,0 +1,19 @@
+language: python
+
+os:
+  - "linux"
+  - "osx"
+  
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+install:
+  - pip install requests
+  - pip install python-coveralls
+
+script: 
+  - coverage run --source='.' YaDiskClient/TestyaDisk.py
+after_success:
+  - coveralls
