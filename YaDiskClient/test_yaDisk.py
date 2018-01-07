@@ -61,9 +61,35 @@ class TestYaDisk(unittest.TestCase):
         self.disk.rm(self.remote_folder)
         os.remove(tmp_local_file)
 
-    @classmethod
-    def tearDownClass(cls):
-        os.remove(cls.tmp_local_file)
+    def test_df(self):
+        result = self.disk.df()
+        self.assertIsInstance(result, dict)
+        self.assertTrue('available' in result.keys())
+        self.assertTrue('used' in result.keys())
+
+    def test_publish(self):
+        self.disk.mkdir(self.remote_folder)
+        try:
+            self.disk.upload(self.remote_file, self.remote_path)
+            self.disk.publish(self.remote_path)
+            self.disk.unpublish(self.remote_path)
+        finally:
+            self.disk.rm(self.remote_folder)
+
+    def test_deprecation(self):
+        self.disk.mkdir(self.remote_folder)
+        try:
+            self.disk.upload(self.remote_file, self.remote_path)
+            self.disk.publish_doc(self.remote_path)
+            self.disk.hide_doc(self.remote_path)
+        finally:
+            self.disk.rm(self.remote_folder)
+
+    def test_bad_auth(self):
+        try:
+            YaDisk(None, None)
+        except YaDiskException as e:
+            self.assertTrue(str(e).startswith(str(e.code)))
 
 
 if __name__ == '__main__':
