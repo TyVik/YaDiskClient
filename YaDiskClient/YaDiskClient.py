@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #coding: utf-8
 from requests import request
 import xml.etree.ElementTree as ET
@@ -13,7 +13,7 @@ class YaDiskException(Exception):
         self.code = code
 
     def __str__(self):
-        return "%d. %s" % (self.code, super(YaDiskException, self).__str__())
+        return "{code}. {message}".format(code=self.code, message=super(YaDiskException, self).__str__())
 
 
 class YaDiskXML(object):
@@ -77,7 +77,7 @@ class YaDisk(object):
 
         url = path
         if (offset != None) and (amount != None):
-            url += "?offset=%d&amount=%d" % (offset, amount)
+            url += "?offset={offset}&amount={amount}".format(offset=offset, amount=amount)
         resp = self._sendRequest("PROPFIND", url, {'Depth': '1'})
         if resp.status_code == 207:
             return parseContent(resp.content)
@@ -114,9 +114,9 @@ class YaDisk(object):
         resp = self._sendRequest("MKCOL", path)
         if resp.status_code != 201:
             if resp.status_code == 409:
-                raise YaDiskException(409, "Part of path %s does not exists" % path)
+                raise YaDiskException(409, "Part of path {} does not exists".format(path))
             elif resp.status_code == 405:
-                raise YaDiskException(405, "Path %s already exists" % path)
+                raise YaDiskException(405, "Path {} already exists".format(path))
             else:
                 raise YaDiskException(resp.status_code, resp.content)
 
@@ -213,4 +213,3 @@ class YaDisk(object):
             pass
         else:
             raise YaDiskException(resp.status_code, resp.content)
-        
