@@ -16,7 +16,7 @@ setup(
     install_requires=['requests'],
     packages=find_packages(),
     keywords='Yandex.Disk, webdav, client, python, Yandex',
-#    test_suite='YaDiskClient.TestYaDisk' # this line is commented because tests needs Yandex login and password
+#    test_suite='YaDiskClient.test_YaDiskClient' # this line is commented because tests needs Yandex login and password
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
