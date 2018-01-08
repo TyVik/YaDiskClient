@@ -53,5 +53,5 @@ Tests
 =====
 
 For run tests:
-    1. Set Yandex username and password in file YaDiskClient/test_YaDiskClient.py
-    2. python test_YaDiskClient.py
+    1. Set Yandex username and password in file tests/test_YaDiskClient.py
+    2. python -m unittest discover -s tests -t tests
