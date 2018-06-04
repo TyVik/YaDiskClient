@@ -25,6 +25,7 @@ Source code
 ===========
 
     `github <https://github.com/TyVik/YaDiskClient>`_
+
     `explanatory article <https://tyvik.ru/posts/yandex-disk-python/>`_
 
 Using API
