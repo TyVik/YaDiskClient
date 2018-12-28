@@ -18,7 +18,8 @@ develop-eggs
 lib
 lib64
 __pycache__
-
+.idea
+.vscode
 # Installer logs
 pip-log.txt
 
