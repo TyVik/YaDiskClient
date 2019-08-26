@@ -4,7 +4,12 @@ from warnings import warn
 
 from requests import request
 import xml.etree.ElementTree as ET
-
+import sys
+import hashlib
+import os
+import http.client
+import logging
+import base64
 
 class YaDiskException(Exception):
     """Common exception class for YaDisk. Arg 'code' have code of HTTP Error."""
@@ -42,8 +47,11 @@ class YaDisk(object):
 
     login = None
     password = None
-    url = "https://webdav.yandex.ru/"
+    host = "webdav.yandex.ru"
+    url = "https://" + host + "/"
     namespaces = {'d': 'DAV:'}
+    bufSize = 65536
+    maxSizeFile = 50*1024**3 # https://yandex.ru/support/disk/uploading.html
     
     def __init__(self, login, password):
         super(YaDisk, self).__init__()
@@ -52,11 +60,46 @@ class YaDisk(object):
         if self.login is None or self.password is None:
             raise YaDiskException(400, "Please, specify login and password for Yandex.Disk account.")
 
-    def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
+    def _calcHash(self, file):
+        md5 = hashlib.md5()
+        sha256 = hashlib.sha256()
+        with open(file, 'rb') as f:
+            while True:
+                data = f.read(self.bufSize)
+                if not data:
+                    break
+                md5.update(data)
+                sha256.update(data)
+        return md5.hexdigest(), sha256.hexdigest()
+
+    def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None, runAtContinue = True):
         headers = {"Accept": "*/*"}
         headers.update(addHeaders)
         url = self.url + addUrl
-        return request(type, url, headers=headers, auth=(self.login, self.password), data=data)
+        # https://stackoverflow.com/questions/38084993/python-http-client-stuck-on-100-continue
+        if "Expect" not in headers:
+            return request(type, url, headers=headers, auth=(self.login, self.password), data=data)
+        else:
+            # https://yandex.ru/dev/disk/doc/dg/concepts/quickstart-docpage/
+            auth = base64.b64encode(bytes(self.login + ':' + self.password, 'utf-8')).decode('utf-8')
+            headers.update({ 'Authorization' : 'Basic ' + auth })
+            conn = ContinueHTTPSConnection(self.host)
+            conn.request(type, url, body=None, headers=headers)
+            response = conn.getresponse()
+            if (response.status == http.client.CONTINUE) and runAtContinue:
+                response.read()
+                conn.send(data)
+                response = conn.getresponse()
+            else:
+                conn.close()
+            class R:
+                status_code = 0
+                content = ""
+            resp = R()
+            resp.status_code = response.status
+            resp.content = response.msg
+            return resp
+           
 
     def ls(self, path, offset=None, amount=None):
         """
@@ -141,7 +184,7 @@ class YaDisk(object):
 
         _check_dst_absolute(dst)
         resp = self._sendRequest("COPY", src, {'Destination': dst})
-        if resp.status_code != 201:
+        if resp.status_code not in (201, 202):
             raise YaDiskException(resp.status_code, resp.content)
 
     def mv(self, src, dst):
@@ -152,13 +195,52 @@ class YaDisk(object):
         if resp.status_code != 201:
             raise YaDiskException(resp.status_code, resp.content)
 
-    def upload(self, file, path):
+    def upload(self, file, path, calcHash=True):
         """Upload file."""
 
-        with open(file, "rb") as f:
-            resp = self._sendRequest("PUT", path, data=f)
-            if resp.status_code != 201:
-                raise YaDiskException(resp.status_code, resp.content)
+        size = os.path.getsize(file)
+        if size > self.maxSizeFile:
+            print ("Big file. Aborted.")
+            return False
+        
+        if (calcHash):
+            md5, sha256 = self._calcHash(file)
+            with open(file, "rb") as f:
+                resp = self._sendRequest("PUT", path, data=f, addHeaders={
+                    "Etag": md5,
+                    "Sha256": sha256,
+                    "Content-Length": str(size),
+                    "Expect": "100-continue"
+                    })
+        else:
+            with open(file, "rb") as f:
+                resp = self._sendRequest("PUT", path, data=f)
+                
+        if resp.status_code != 201:
+            raise YaDiskException(resp.status_code, resp.content)
+        else:
+            return True
+
+    def uploadViaHash(self, md5, sha256, size, path):
+        """Upload file via hash."""
+
+        if size > self.maxSizeFile:
+            print ("Big file. Aborted.")
+            return False
+        
+        resp = self._sendRequest("PUT", path, runAtContinue = False, addHeaders={
+                "Etag": md5,
+                "Sha256": sha256,
+                "Content-Length": str(size),
+                "Expect": "100-continue"
+                    })
+
+        if resp.status_code == 201:
+            return True
+        elif resp.status_code == 100:
+            return False
+        else:
+            raise YaDiskException(resp.status_code, resp.content)
 
     def download(self, path, file):
         """Download remote file to disk."""
@@ -222,3 +304,31 @@ class YaDisk(object):
     def hide_doc(self, path):
         warn('This method was deprecated in favor method "unpublish"', DeprecationWarning, stacklevel=2)
         return self.unpublish(path)
+
+
+class ContinueHTTPResponse(http.client.HTTPResponse):
+    def _read_status(self, *args, **kwargs):
+        version, status, reason = super()._read_status(*args, **kwargs)
+        if status == 100:
+            status = 199
+        return version, status, reason
+
+    def begin(self, *args, **kwargs):
+        super().begin(*args, **kwargs)
+        if self.status == 199:
+            self.status = 100
+
+    def _check_close(self, *args, **kwargs):
+        return super()._check_close(*args, **kwargs) and self.status != 100
+
+
+class ContinueHTTPSConnection(http.client.HTTPSConnection):
+    response_class = ContinueHTTPResponse
+
+    def getresponse(self, *args, **kwargs):
+        logging.debug('running getresponse')
+        response = super().getresponse(*args, **kwargs)
+        if response.status == 100:
+            setattr(self, '_HTTPConnection__state', http.client._CS_REQ_SENT)
+            setattr(self, '_HTTPConnection__response', None)
+        return response
