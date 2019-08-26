@@ -184,7 +184,7 @@ class YaDisk(object):
 
         _check_dst_absolute(dst)
         resp = self._sendRequest("COPY", src, {'Destination': dst})
-        if resp.status_code != 201:
+        if resp.status_code not in (201, 202):
             raise YaDiskException(resp.status_code, resp.content)
 
     def mv(self, src, dst):

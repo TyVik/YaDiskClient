@@ -18,6 +18,9 @@ class TestYaDisk(unittest.TestCase):
     remote_folder = None
     remote_file = None
     remote_path = None
+    md5 = 'E678A6380E2EA14F1B104D5F3E64EA70'
+    sha256 = '0EB25AE2FBFB90C988C0BE1C650D272819D6386A1C5536C59AD46F4AE8BEA760'
+    size = 647218
 
     @classmethod
     def setUpClass(cls):
@@ -112,3 +115,10 @@ class TestYaDisk(unittest.TestCase):
             YaDisk(None, None)
         except YaDiskException as e:
             self.assertTrue(str(e).startswith(str(e.code)))
+
+    def test_upload_via_hash(self):
+        mp3_file = "{folder}/{file}.png".format(folder=self.remote_folder, file=''.join(random.choice(string.ascii_uppercase) for _ in range(6)))
+        self.disk.mkdir(self.remote_folder)
+        result = self.disk.uploadViaHash(self.md5, self.sha256, self.size, mp3_file)
+        self.assertTrue(result)
+        self.disk.rm(self.remote_folder)
