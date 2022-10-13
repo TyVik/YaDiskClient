@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# coding: utf-8
+
 from warnings import warn
 
 from requests import request
@@ -41,20 +41,35 @@ class YaDisk(object):
     """Main object for work with Yandex.disk."""
     
     token = None
+    login = None
+    password = None
     url = "https://webdav.yandex.ru/"
     namespaces = {'d': 'DAV:'}
     
-    def __init__(self, token):
-        super(YaDisk, self).__init__()
+    def set_token(self, token):
         self.token = token
-        if self.token is None:
-            raise YaDiskException(400, "Please, specify token for Yandex.Disk account.")
+        self.login = None
+        self.password = None
+
+    def set_auth(self, login, password):
+        self.token = None
+        self.login = login
+        self.password = password
 
     def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
-        headers = {"Accept": "*/*", "Authorization": "OAuth " + self.token}
+        if self.token is None and (self.login is None or self.password is None):
+            raise YaDiskException(400, "Specify token or login/password for Yandex.Disk account.")
+
+        headers = {"Accept": "*/*"}
+        auth = None
+        if self.token is not None:
+            headers["Authorization"] = "OAuth %s".format(self.token)
+        else:
+            auth = (self.login, self.password)
+
         headers.update(addHeaders)
         url = self.url + addUrl
-        return request(type, url, headers=headers, data=data)
+        return request(type, url, headers=headers, auth=auth, data=data)
 
     def ls(self, path, offset=None, amount=None):
         """
@@ -139,7 +154,7 @@ class YaDisk(object):
 
         _check_dst_absolute(dst)
         resp = self._sendRequest("COPY", src, {'Destination': dst})
-        if resp.status_code != 201:
+        if resp.status_code not in (201, 202):
             raise YaDiskException(resp.status_code, resp.content)
 
     def mv(self, src, dst):
@@ -147,7 +162,7 @@ class YaDisk(object):
 
         _check_dst_absolute(dst)
         resp = self._sendRequest("MOVE", src, {'Destination': dst})
-        if resp.status_code != 201:
+        if resp.status_code not in (201, 202):
             raise YaDiskException(resp.status_code, resp.content)
 
     def upload(self, file, path):
@@ -155,7 +170,7 @@ class YaDisk(object):
 
         with open(file, "rb") as f:
             resp = self._sendRequest("PUT", path, data=f)
-            if resp.status_code != 201:
+            if resp.status_code not in (201, 202):
                 raise YaDiskException(resp.status_code, resp.content)
 
     def download(self, path, file):

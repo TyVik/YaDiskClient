@@ -21,7 +21,8 @@ class TestYaDisk(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.disk = YaDisk(LOGIN, PASSWORD)
+        cls.disk = YaDisk()
+        cls.disk.set_auth(LOGIN, PASSWORD)
         # take any file in work directory
         for item in os.listdir('.'):
             if os.path.isfile(item):
@@ -109,6 +110,7 @@ class TestYaDisk(unittest.TestCase):
 
     def test_bad_auth(self):
         try:
-            YaDisk(None, None)
+            disk = YaDisk()
+            disk.df()
         except YaDiskException as e:
             self.assertTrue(str(e).startswith(str(e.code)))
