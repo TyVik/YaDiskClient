@@ -39,24 +39,22 @@ def _check_dst_absolute(dst):
 
 class YaDisk(object):
     """Main object for work with Yandex.disk."""
-
-    login = None
-    password = None
+    
+    token = None
     url = "https://webdav.yandex.ru/"
     namespaces = {'d': 'DAV:'}
     
-    def __init__(self, login, password):
+    def __init__(self, token):
         super(YaDisk, self).__init__()
-        self.login = login
-        self.password = password
-        if self.login is None or self.password is None:
-            raise YaDiskException(400, "Please, specify login and password for Yandex.Disk account.")
+        self.token = token
+        if self.token is None:
+            raise YaDiskException(400, "Please, specify token for Yandex.Disk account.")
 
     def _sendRequest(self, type, addUrl="/", addHeaders={}, data=None):
-        headers = {"Accept": "*/*"}
+        headers = {"Accept": "*/*", "Authorization": "OAuth " + self.token}
         headers.update(addHeaders)
         url = self.url + addUrl
-        return request(type, url, headers=headers, auth=(self.login, self.password), data=data)
+        return request(type, url, headers=headers, data=data)
 
     def ls(self, path, offset=None, amount=None):
         """
