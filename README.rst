@@ -1,8 +1,8 @@
 YaDiskClient
 ============
 
-.. image:: https://travis-ci.org/TyVik/YaDiskClient.svg?branch=master
-    :target: https://travis-ci.org/TyVik/YaDiskClient?branch=master
+.. image:: https://github.com/TyVik/YaDiskClient/actions/workflows/test.yaml/badge.svg?branch=master
+    :target: https://github.com/TyVik/YaDiskClient/actions/workflows/test.yaml?branch=master
 .. image:: https://coveralls.io/repos/github/TyVik/YaDiskClient/badge.svg?branch=master
     :target: https://coveralls.io/github/TyVik/YaDiskClient?branch=master
 .. image:: https://img.shields.io/pypi/pyversions/YaDiskClient.svg
