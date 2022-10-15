@@ -22,4 +22,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install requests
       - name: Run tests
+        env:
+          YANDEX_LOGIN: ${{ secrets.YANDEX_LOGIN }}
+          YANDEX_PASSWORD: ${{ secrets.YANDEX_PASSWORD }}
         run: python -m unittest discover -s tests -t tests
