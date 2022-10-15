@@ -28,13 +28,28 @@ Source code
 
     `explanatory article <https://tyvik.ru/posts/yandex-disk-python/>`_
 
+Passwords and tokens
+====================
+
+You must use application password, not account password! Details - https://yandex.ru/support/id/authorization/app-passwords.html
+
+Also, you can create OAuth-token for your application. Details - https://yandex.ru/dev/disk/doc/dg/concepts/quickstart.html
+
+Both methods are supported. You should use method `set_login` or `set_token` before start.
+
 Using API
 =========
 
 ::
 
     from YaDiskClient.YaDiskClient import YaDisk
-    disk = YaDisk(login, password)
+    disk = YaDisk()
+    disk.set_auth(login, password)
+
+    """
+    Library also supports token authorization via:
+    disk.set_token(token)
+    """
 
     disk.df() # show used and available space
 
